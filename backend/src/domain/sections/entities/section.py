@@ -9,17 +9,19 @@ from src.domain.sections.value_objects import TechVersionType, SectionMessageTyp
 class Section:
 	def __init__(
 		self,
+		id: UUID,
+		parent_id: UUID | None,
 		code: str,
+		openai_prompt: str | None,
 		tech_version: TechVersionType,
-		id: UUID | None = None,
-		openai_prompt: str | None = None,
 		enable_openai: bool = True,
 		allow_hide: bool = True,
 		created_at: datetime | None = None,
 		updated_at: datetime | None = None,
 		allowed_message_types: List[SectionMessageType] | None = None
 	):
-		self.id = id or uuid4()
+		self.id = id
+		self.parent_id = parent_id
 		self.code = code
 		self.openai_prompt = openai_prompt
 		self.tech_version = tech_version
@@ -44,15 +46,6 @@ class Section:
 	def has_allowed_comment_for_message_type(self, message_type: MessageType) -> bool:
 		return any(message_type == amt.message_type for amt in self._allowed_message_types if amt.allow_comments is True)
 
-	def add_allowed_message_type(self, message_type: MessageType, allow_comments: bool) -> None:
-		if self.has_allowed_message_type(message_type):
-			raise SectionMessageTypeConflictError(message_type)
-
-		section_message_type = SectionMessageType(message_type=message_type, allow_comments=allow_comments)
-		self._allowed_message_types.append(section_message_type)
-
-		self._touch()
-
 	def ensure_allowed_message_type(self, message_type: MessageType):
 		if not self.has_allowed_message_type(message_type):
 			raise SectionValidationError.message_type_not_allowed(message_type, self.code, self.allowed_message_types)
@@ -71,10 +64,56 @@ class Section:
 		if not self.can_use_ai:
 			raise SectionAIDisabled(self.id, self.code)
 
+	def add_allowed_message_type(self, message_type: MessageType, allow_comments: bool) -> None:
+		if self.has_allowed_message_type(message_type):
+			raise SectionMessageTypeConflictError(message_type)
+
+		section_message_type = SectionMessageType(message_type=message_type, allow_comments=allow_comments)
+		self._allowed_message_types.append(section_message_type)
+
+		self._touch()
+
+	def update_allowed_message_type(self, message_type: MessageType, allow_comments: bool) -> None:
+		"""Обновляет настройки существующего типа сообщения"""
+		for mt in self._allowed_message_types:
+			if mt.message_type == message_type:
+				if mt.allow_comments != allow_comments:
+					mt.allow_comments = allow_comments
+					self._touch()
+				return
+
+		# raise SectionMessageTypeNotFoundError(f"Message type {message_type} not found")
+
+	def remove_allowed_message_type(self, message_type: MessageType) -> None:
+		self._allowed_message_types = [mt for mt in self._allowed_message_types if mt.message_type != message_type]
+
+		self._touch()
+
+	def change_parent(self, new_parent_id: UUID | None):
+		"""Изменить родителя секции"""
+		if self.id == new_parent_id:
+			return
+			# raise DomainError("Секция не может быть своим родителем")
+		self.parent_id = new_parent_id
+
+		self._touch()
+
+	@classmethod
+	def create(cls, code: str, allow_hide: bool, tech_version: TechVersionType, parent_id: UUID | None = None, openai_prompt: str | None = None):
+		return cls(
+			id=uuid4(),
+			parent_id=parent_id,
+			code=code,
+			allow_hide=allow_hide,
+			tech_version=tech_version,
+			openai_prompt=openai_prompt,
+		)
+
 	@classmethod
 	def from_db_record(cls, record: dict):
 		return cls(
 			id=record["id"],
+			parent_id=record["parent_id"],
 			code=record["code"],
 			openai_prompt=record["openai_prompt"],
 			tech_version=TechVersionType(record["tech_version"]),

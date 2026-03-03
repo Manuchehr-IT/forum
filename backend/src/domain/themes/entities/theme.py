@@ -7,16 +7,16 @@ from src.domain.themes.value_objects import ThemeSection
 class Theme:
 	def __init__(
 		self,
+		id: UUID,
+		parent_id: UUID | None,
 		author_id: UUID,
 		title: str,
-		id: UUID | None = None,
-		parent_id: UUID | None = None,
 		is_group: bool = False,
 		created_at: datetime | None = None,
 		updated_at: datetime | None = None,
 		sections: List[ThemeSection] | None = None,
 	):
-		self.id = id or uuid4()
+		self.id = id
 		self.parent_id = parent_id
 		self.author_id = author_id
 		self.title = title
@@ -44,6 +44,32 @@ class Theme:
 		self._sections.append(theme_section)
 
 		self._touch()
+
+	# def update_section(self, section_id: UUID, section_code: str, is_visible: bool = True):
+	# 	if not self.has_section(section_id):
+	# 		raise ValueError(f"Section {section_id} not found in theme")
+
+	def update_section(self, section_id: UUID, section_code: str, is_visible: bool = True) -> None:
+		"""Обновляет настройки существующей секции темы"""
+		for ts in self._sections:
+			if ts.section_id == section_id:
+				if ts.section_code != section_code:
+					ts.section_code = section_code
+					self._touch()
+				if ts.is_visible != is_visible:
+					ts.is_visible = is_visible
+					self._touch()
+				return
+
+	@classmethod
+	def create(cls, author_id: UUID, title: str, parent_id: UUID | None = None, is_group: bool = False):
+		return cls(
+			id=uuid4(),
+			parent_id=parent_id,
+			author_id=author_id,
+			title=title,
+			is_group=is_group
+		)
 
 	@classmethod
 	def from_db_record(cls, record: dict):

@@ -1,3 +1,6 @@
+from typing import Any, Dict, List
+from uuid import UUID
+
 from src.domain.messages.value_objects import MessageType
 from src.domain.sections.entities import Section
 from src.domain.sections.exceptions import SectionNotFoundError
@@ -7,7 +10,6 @@ from src.domain.sections.value_objects import TechVersionType
 SECTIONS = [
 	{
 		"code": "discussion",
-		"allow_hide": True,
 		"tech_version": TechVersionType.MINIMUM,
 		"message_types": [
 			{"message_type": MessageType.POST, "allow_comments": False}
@@ -15,10 +17,9 @@ SECTIONS = [
 	},
 	{
 		"code": "experience_exchange",
-		"allow_hide": True,
 		"tech_version": TechVersionType.MINIMUM,
 		"message_types": [
-			{"message_type": MessageType.POST, "allow_comments": True}
+			{"message_type": MessageType.POST}
 		]
 	},
 	{
@@ -26,76 +27,118 @@ SECTIONS = [
 		"allow_hide": False,
 		"tech_version": TechVersionType.MINIMUM,
 		"message_types": [
-			{"message_type": MessageType.POST, "allow_comments": True}
+			{"message_type": MessageType.POST}
 		]
 	},
 	{
 		"code": "perfect_result",
-		"allow_hide": True,
 		"tech_version": TechVersionType.MINIMUM,
-		"message_types": [
-			{"message_type": MessageType.POST, "allow_comments": True}
-		]
+		"children": [
+			{
+				"code": "desirable_effects",
+				"tech_version": TechVersionType.MINIMUM,
+				"message_types": [
+					{"message_type": MessageType.POST}
+				]
+			},
+			{
+				"code": "technical_modeling",
+				"tech_version": TechVersionType.MINIMUM,
+				"message_types": [
+					{"message_type": MessageType.POST}
+				]
+			},
+			{
+				"code": "undesirable_effects",
+				"tech_version": TechVersionType.MINIMUM,
+				"message_types": [
+					{"message_type": MessageType.POST}
+				]
+			}
+		],
 	},
 	{
 		"code": "project_modules",
-		"allow_hide": True,
 		"tech_version": TechVersionType.MINIMUM,
 	},
 	{
 		"code": "chat_ideas",
-		"allow_hide": True,
 		"tech_version": TechVersionType.FULL,
 		"openai_prompt": "Улучшите текст идеи, сделав его максимально лаконичным. Ответь только улучшенным текстом, без дополнительных комментариев.",
 		"message_types": [
-			{"message_type": MessageType.POST, "allow_comments": True}
+			{"message_type": MessageType.POST}
 		]
 	},
 	{
 		"code": "chat_qa",
-		"allow_hide": True,
 		"tech_version": TechVersionType.FULL,
 		"message_types": [
-			{"message_type": MessageType.POST, "allow_comments": True}
+			{"message_type": MessageType.POST}
 		]
 	},
 	{
 		"code": "chat_publications",
-		"allow_hide": True,
 		"tech_version": TechVersionType.FULL,
 		"message_types": [
-			{"message_type": MessageType.POST, "allow_comments": True}
+			{"message_type": MessageType.POST}
 		]
 	},
 	{
 		"code": "chat_tasks",
-		"allow_hide": True,
 		"tech_version": TechVersionType.FULL,
 		"message_types": [
-			{"message_type": MessageType.TASK, "allow_comments": True},
+			{"message_type": MessageType.TASK},
 			{"message_type": MessageType.TASK_ASSIGNMENT, "allow_comments": False}
 		]
 	},
 	{
 		"code": "chat_experiments",
-		"allow_hide": True,
 		"tech_version": TechVersionType.FULL,
 		"message_types": [
-			{"message_type": MessageType.TASK, "allow_comments": True},
+			{"message_type": MessageType.TASK},
 			{"message_type": MessageType.TASK_ASSIGNMENT, "allow_comments": False}
 		]
 	},
 ]
 
 async def seed_sections(section_repo: SectionRepository):
-	for data in SECTIONS:
+
+	async def _processing(data: Dict[str, Any], parent_id: UUID | None = None):
+		code = data["code"]
+		allow_hide = data.get("allow_hide", True)
+		tech_version = data["tech_version"]
+		openai_prompt = data.get("openai_prompt")
+		children = data.get("children", [])
+
 		try:
-			section = await section_repo.get_by_code(data["code"])
+			section = await section_repo.get_by_code(code)
+			if section.parent_id != parent_id:
+				section.change_parent(parent_id)
 		except SectionNotFoundError:
-			section = Section(code=data["code"], allow_hide=data["allow_hide"], tech_version=data["tech_version"], openai_prompt=data.get("openai_prompt"))
+			section = Section.create(
+				parent_id=parent_id,
+				code=code,
+				allow_hide=allow_hide,
+				tech_version=tech_version,
+				openai_prompt=openai_prompt
+			)
 
 		for mt in data.get("message_types", []):
-			if not section.has_allowed_message_type(mt["message_type"]):
-				section.add_allowed_message_type(message_type=mt["message_type"], allow_comments=mt["allow_comments"])
+			if section.has_allowed_message_type(mt["message_type"]):
+				section.update_allowed_message_type(message_type=mt["message_type"], allow_comments=mt.get("allow_comments", True))
+			else:
+				section.add_allowed_message_type(message_type=mt["message_type"], allow_comments=mt.get("allow_comments", True))
+
+		current_message_types = {mt.message_type for mt in section.allowed_message_types}
+		seed_message_types = {mt["message_type"] for mt in data.get("message_types", [])}
+
+		for message_type in current_message_types - seed_message_types:
+			section.remove_allowed_message_type(message_type)
 
 		await section_repo.save(section)
+
+		for child in children:
+			await _processing(child, parent_id=section.id)
+
+	for data in SECTIONS:
+		await _processing(data)

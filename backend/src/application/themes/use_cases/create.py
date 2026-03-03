@@ -25,7 +25,7 @@ class CreateTheme:
 
 		tech_version_enum = TechVersionType(command.tech_version)
 
-		theme = Theme(
+		theme = Theme.create(
 			parent_id=parent_id,
 			author_id=command.author_id,
 			title=command.title,

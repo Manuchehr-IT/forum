@@ -16,14 +16,17 @@ THEMES = [
 async def seed_themes(theme_repo: ThemeRepository, section_repo: SectionRepository):
 	for item in THEMES:
 		try:
-			await theme_repo.get_by_title(item["title"])
-			continue
+			theme = await theme_repo.get_by_title(item["title"])
 		except ThemeNotFoundError:
-			theme = Theme(author_id=item["author_id"], title=item["title"])
-			sections = await section_repo.get_list()
+			theme = Theme.create(author_id=item["author_id"], title=item["title"])
 
-			for section in sections:
-				is_visible = item["tech_version"].can_include(section.tech_version)
+		sections = await section_repo.get_list()
+
+		for section in sections:
+			is_visible = item["tech_version"].can_include(section.tech_version)
+			if theme.has_section(section.id):
+				theme.update_section(section.id, section.code, is_visible=is_visible)
+			else:
 				theme.add_section(section.id, section.code, is_visible=is_visible)
 
-			await theme_repo.save(theme)
+		await theme_repo.save(theme)

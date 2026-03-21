@@ -6,6 +6,7 @@ class AppSettings(BaseSettings):
 	title: str
 	languages: List[str] = Field(default_factory=list)
 	default_language: str
+	time_zone: str
 
 	class Config:
 		env_prefix = "APP_"

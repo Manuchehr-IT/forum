@@ -2,7 +2,9 @@ import json
 from datetime import UTC, datetime, timedelta
 from typing import List, Tuple
 from uuid import UUID, uuid4
+from zoneinfo import ZoneInfo
 
+from src.core.config import settings
 from src.domain.messages.exceptions import MessageContentMismatchError, MessageEmptyFieldError, MessageMediaFileConflictError, MessageStateConflictError, TaskValidationError
 from src.domain.messages.value_objects import MessageType, PostMessageData, TaskMessageData, TaskAssignmentMessageData, CommentMessageData, MessageMediaFile
 
@@ -206,6 +208,9 @@ class Message:
 	) -> "Message":
 		"""Создать назначение задачи"""
 		now = datetime.now(UTC)
+
+		if expires_at.tzinfo is None:
+			expires_at = expires_at.replace(tzinfo=ZoneInfo(settings.app.time_zone)) # Europe/Moscow
 
 		if expires_at < (now + timedelta(days=1)):
 			raise TaskValidationError.deadline_too_soon(expires_at)

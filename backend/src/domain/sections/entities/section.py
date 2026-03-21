@@ -61,7 +61,7 @@ class Section:
 		return bool(self.enable_openai and self.openai_prompt)
 
 	def ensure_ai_available(self):
-		if not self.can_use_ai:
+		if not self.can_use_ai():
 			raise SectionAIDisabled(self.id, self.code)
 
 	def add_allowed_message_type(self, message_type: MessageType, allow_comments: bool) -> None:

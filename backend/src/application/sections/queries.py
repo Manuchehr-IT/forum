@@ -6,6 +6,8 @@ class GetSectionQueryType(str, Enum):
 	BY_ID = "by_id"
 	BY_CODE = "by_code"
 
+class ListSectionsQuery(BaseModel): pass
+
 class GetSectionQuery(BaseModel):
 	"""Базовый query для получения секций"""
 	query_type: GetSectionQueryType

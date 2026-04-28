@@ -12,6 +12,8 @@ class SectionMessageTypeModel(Base):
 	message_type: Mapped[str] = mapped_column(String(32), nullable=False)
 	allow_comments: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
 
-	__table_args__ = (UniqueConstraint("section_id", "message_type"),)
+	__table_args__ = (
+		UniqueConstraint("section_id", "message_type"),
+	)
 
 	# section: Mapped["SectionModel"] = relationship(back_populates="allowed_message_types")

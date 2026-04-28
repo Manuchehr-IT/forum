@@ -1,9 +1,11 @@
 import uuid
 from sqlalchemy import Boolean, ForeignKey, Text, text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import List
 
 from src.infrastructure.database.base import Base, TimestampMixin
+from .section_message_type import SectionMessageTypeModel
 
 class SectionModel(Base, TimestampMixin):
 	__tablename__ = "sections"
@@ -15,7 +17,8 @@ class SectionModel(Base, TimestampMixin):
 	enable_openai: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
 	allow_hide: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
 
-	# allowed_message_types: Mapped[List["SectionMessageTypeModel"]] = relationship(
-	# 	back_populates="section", 
-	# 	cascade="all, delete-orphan"
-	# )
+	allowed_message_types: Mapped[List[SectionMessageTypeModel]] = relationship(
+		"SectionMessageTypeModel",
+		lazy="selectin",
+		cascade="all, delete-orphan"
+	)

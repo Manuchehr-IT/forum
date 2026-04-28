@@ -22,8 +22,8 @@ class MessageMediaFileModel(Base):
 	# is_cover: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
 
 	# Связи
-	message: Mapped["MessageModel"] = relationship(back_populates="media_files")
-	media_file: Mapped["MediaFileModel"] = relationship(back_populates="messages")
+	# message: Mapped["MessageModel"] = relationship(back_populates="media_files")
+	# media_file: Mapped["MediaFileModel"] = relationship(back_populates="messages")
 
 	__table_args__ = (
 		UniqueConstraint("message_id", "media_file_id"),

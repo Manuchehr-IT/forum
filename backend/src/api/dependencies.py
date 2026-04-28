@@ -13,7 +13,7 @@ from src.infrastructure.database import UnitOfWork, db
 from src.infrastructure.external.http import HTTPClient
 from src.infrastructure.services.openai.factory import create_openai_service
 
-security = HTTPBearer(auto_error=False)
+security = HTTPBearer()
 
 async def get_http_client(request: Request) -> HTTPClient:
 	return request.app.state.http_client

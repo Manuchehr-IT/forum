@@ -7,6 +7,10 @@ class StorageSettings(BaseSettings):
 	def avatar_dir(self) -> str:
 		return f"{self.dir}/avatars"
 
+	@property
+	def message_dir(self) -> str:
+		return f"{self.dir}/messages"
+
 	class Config:
 		env_prefix = "STORAGE_"
 		case_sensitive = False

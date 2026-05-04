@@ -4,9 +4,11 @@ import uuid
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from httpx import AsyncClient
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from pathlib import Path
 
 from src.api.exceptions.handlers import base_app_error_handler, generic_exception_handler, http_exception_handler
 from src.api.router import api_router
@@ -78,6 +80,18 @@ async def main() -> None:
 	)
 
 	app.include_router(api_router)
+
+	app.mount(
+		"/static/avatars",
+		StaticFiles(directory=settings.storage.avatar_dir),
+		name="avatars"
+	)
+
+	app.mount(
+		"/static/messages",
+		StaticFiles(directory=settings.storage.message_dir),
+		name="messages"
+	)
 
 	config = uvicorn.Config(app=app, host=settings.host, port=settings.port, log_level="info")
 	server = uvicorn.Server(config)

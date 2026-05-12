@@ -9,7 +9,7 @@ from src.domain.interfaces.storage_service import StorageService
 class LocalStorageService(StorageService):
 	"""Адаптер для локальной файловой системы"""
 
-	def __init__(self, base_path: Path, base_url: str): # Непонятно что за base_path и base_url
+	def __init__(self, base_path: Path, base_url: str):
 		self.base_path = base_path
 		self.base_url = base_url.rstrip("/")
 
@@ -52,7 +52,7 @@ class LocalStorageService(StorageService):
 
 	def get_url(self, path: str) -> str:
 		"""Получить URL"""
-		return f"{self.base_url}/{path}"
+		return str(self.base_path / path)
 
 	def move(self, source_path: str, new_path: str) -> None:
 		"""

@@ -32,14 +32,4 @@ async def get_file_endpoints(
 ):
 	query = GetMediaFileQuery(id=id)
 	media_file_dto = await get_media_file.execute(query)
-	return schemas.MediaFileResponse(
-		original_filename=media_file_dto.original_filename,
-		file_size=media_file_dto.file_size,
-		mime_type=media_file_dto.mime_type,
-		extension=media_file_dto.extension,
-		url=media_file_dto.url,
-	)
-
-@router.get("/test/{path:path}")
-async def test_get_file_endpoints(path: str):
-	return FileResponse(path)
+	return FileResponse(media_file_dto.url)

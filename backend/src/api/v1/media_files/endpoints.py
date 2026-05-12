@@ -39,3 +39,9 @@ async def get_file_endpoints(
 		extension=media_file_dto.extension,
 		url=media_file_dto.url,
 	)
+
+@router.get("/test/{path}", response_model=schemas.MediaFileResponse)
+async def test_get_file_endpoints(
+	path: str,
+):
+	return FileResponse(path)

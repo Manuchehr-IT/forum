@@ -20,7 +20,7 @@ class MediaFileModel(Base, TimestampMixin):
 	file_size: Mapped[int] = mapped_column(BigInteger, nullable=False)  # в байтах
 	mime_type: Mapped[str] = mapped_column(String(127), nullable=False)
 	extension: Mapped[str] = mapped_column(String(50), nullable=False)
-	extra: Mapped[dict] = mapped_column(JSONB, server_default=text("'{}'::jsonb")) # metadata
+	extra: Mapped[dict] = mapped_column(JSONB, default=dict, server_default=text("'{}'::jsonb"))
 
 	# Хранение файла
 	storage_path: Mapped[str] = mapped_column(String(512), nullable=False, unique=True)  # путь в S3/локальном хранилище

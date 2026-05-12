@@ -1,27 +1,38 @@
 from datetime import date
-from sqlalchemy import Boolean, Date, String, Text, text
+from sqlalchemy import Boolean, Date, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List
 
 from src.infrastructure.database.base import Base, TimestampMixin
-# from .linked_account import LinkedAccountModel
+from .linked_account import LinkedAccountModel
 
 class UserModel(Base, TimestampMixin):
 	__tablename__ = "users"
 
 	first_name: Mapped[str] = mapped_column(String(32), nullable=False)
 	last_name: Mapped[str | None] = mapped_column(String(32), nullable=True)
-	username: Mapped[str | None] = mapped_column(String(32), unique=True, nullable=True)
+	username: Mapped[str | None] = mapped_column(String(32), nullable=True)
+
 	about: Mapped[str | None] = mapped_column(Text, nullable=True)
-	location: Mapped[str | None] = mapped_column(Text, nullable=True)
+	location: Mapped[str | None] = mapped_column(String, nullable=True)
 	birthday: Mapped[date | None] = mapped_column(Date, nullable=True)
 
-	email: Mapped[str | None] = mapped_column(Text, unique=True, nullable=True)
-	phone: Mapped[str | None] = mapped_column(String(16), unique=True, nullable=True)
+	email: Mapped[str | None] = mapped_column(String, nullable=True)
+	phone: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
 	language_code: Mapped[str] = mapped_column(String(5), nullable=False)
-	avatar_path: Mapped[str | None] = mapped_column(Text, nullable=True)
+	avatar_path: Mapped[str | None] = mapped_column(String, nullable=True)
 
-	is_system: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
+	is_system: Mapped[bool] = mapped_column(Boolean, server_default=text("false"), nullable=False)
 
-	# linked_accounts: Mapped[List[LinkedAccountModel]] = relationship(LinkedAccountModel, cascade="all, delete-orphan")
+	linked_accounts: Mapped[List[LinkedAccountModel]] = relationship(
+		LinkedAccountModel,
+		lazy="selectin",
+		cascade="all, delete-orphan"
+	)
+
+	__table_args__ = (
+		UniqueConstraint("username", name="uq_user_username"),
+		UniqueConstraint("email", name="uq_user_email"),
+		UniqueConstraint("phone", name="uq_user_phone"),
+	)

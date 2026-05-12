@@ -5,11 +5,13 @@ from uuid import UUID
 
 from src.api.dependencies import get_db_pool
 from src.application.media_files.queries import GetFilesQuery
+from src.application.media_files.use_cases.get import GetMediaFile
 from src.application.media_files.use_cases.get_files import GetFiles
 from src.application.media_files.use_cases.upload_files import UploadFiles
 from src.domain.interfaces.file_validator import FileValidator
 from src.domain.interfaces.storage_service import StorageService
 from src.domain.media_files.repository import MediaFileRepository
+from src.infrastructure.database import UnitOfWork
 from src.infrastructure.database.repositories.raw_sql.media_files import RawSQLMediaFileRepository
 from src.infrastructure.services.validation.factory import create_file_validator
 from src.infrastructure.services.storage.factory import create_storage_service
@@ -45,3 +47,9 @@ async def get_media_files(
 ):
 	query = GetFilesQuery(media_file_ids=media_file_ids)
 	return await get_files.execute(query)
+
+async def provide_get_media_file(
+	uow: UnitOfWork,
+	storage_service: StorageService
+) -> GetMediaFile:
+	return GetMediaFile(uow, storage_service)

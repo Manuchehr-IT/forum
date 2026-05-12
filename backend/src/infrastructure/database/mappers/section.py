@@ -17,13 +17,7 @@ class SectionMapper:
 			created_at=model.created_at,
 			updated_at=model.updated_at,
 		)
-		section._allowed_message_types = [
-			SectionMessageType(
-				message_type=MessageType(i.message_type),
-				allow_comments=i.allow_comments
-			)
-			for i in model.allowed_message_types
-		]
+		section._allowed_message_types.extend([SectionMessageTypeMapper.to_domain(i) for i in model.allowed_message_types])
 		return section
 
 	@staticmethod
@@ -38,11 +32,22 @@ class SectionMapper:
 			allow_hide=section.allow_hide,
 			created_at=section.created_at,
 			updated_at=section.updated_at,
-			allowed_message_types=[
-				SectionMessageTypeModel(
-					message_type=i.message_type.value,
-					allow_comments=i.allow_comments
-				)
-				for i in section.allowed_message_types
-			]
+			allowed_message_types=[SectionMessageTypeMapper.to_model(i) for i in section.allowed_message_types]
+		)
+
+class SectionMessageTypeMapper:
+	@staticmethod
+	def to_domain(model: SectionMessageTypeModel):
+		return SectionMessageType(
+			# id=model.id, TODO
+			message_type=MessageType(model.message_type),
+			allow_comments=model.allow_comments
+		)
+
+	@staticmethod
+	def to_model(message_type: SectionMessageType):
+		return SectionMessageTypeModel(
+			# id=message_type.id, TODO
+			message_type=message_type.message_type.value,
+			allow_comments=message_type.allow_comments
 		)

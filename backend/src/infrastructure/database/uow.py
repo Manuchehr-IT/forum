@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from typing import Self
 
-from src.infrastructure.database.repositories import SectionRepository
+from src.infrastructure.database.repositories import SectionRepository, MediaFileRepository
 
 class UnitOfWork:
 	def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
@@ -38,3 +38,7 @@ class UnitOfWork:
 	@property
 	def section(self) -> SectionRepository:
 		return SectionRepository(self.session)
+
+	@property
+	def media_file(self) -> MediaFileRepository:
+		return MediaFileRepository(self.session)

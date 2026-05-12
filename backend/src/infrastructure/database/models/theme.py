@@ -1,6 +1,5 @@
 import uuid
-from sqlalchemy import Boolean, ForeignKey, String, text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Boolean, ForeignKey, String, UUID, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.infrastructure.database.base import Base, TimestampMixin

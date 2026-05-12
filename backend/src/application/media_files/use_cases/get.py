@@ -1,7 +1,7 @@
-from domain.interfaces.storage_service import StorageService
 from src.application.media_files.queries import GetMediaFileQuery
 from src.application.media_files.dtos import MediaFileDTO
 from src.application.media_files.mappers import MediaFileMapper
+from src.domain.interfaces.storage_service import StorageService
 from src.domain.media_files.exceptions import MediaFileNotFoundError
 from src.infrastructure.database import UnitOfWork
 

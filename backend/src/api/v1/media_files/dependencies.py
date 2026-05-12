@@ -3,7 +3,7 @@ from fastapi import Depends
 from typing import List
 from uuid import UUID
 
-from src.api.dependencies import get_db_pool
+from src.api.dependencies import get_db_pool, get_uow
 from src.application.media_files.queries import GetFilesQuery
 from src.application.media_files.use_cases.get import GetMediaFile
 from src.application.media_files.use_cases.get_files import GetFiles
@@ -49,7 +49,7 @@ async def get_media_files(
 	return await get_files.execute(query)
 
 async def provide_get_media_file(
-	uow: UnitOfWork,
-	storage_service: StorageService
+	uow: UnitOfWork = Depends(get_uow),
+	storage_service: StorageService = Depends(get_storage_service)
 ) -> GetMediaFile:
 	return GetMediaFile(uow, storage_service)

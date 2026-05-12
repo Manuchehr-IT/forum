@@ -10,6 +10,7 @@ from src.application.media_files.use_cases.get import GetMediaFile
 from src.application.media_files.use_cases.upload_files import UploadFiles
 from src.application.users.dtos import UserDTO
 from .dependencies import get_upload_files, provide_get_media_file
+from . import schemas
 
 router = APIRouter(prefix="/media_files", tags=["MediaFiles"])
 
@@ -23,7 +24,7 @@ async def uploads_endpoint(
 	media_file_ids = await upload_files.execute(command)
 	return media_file_ids
 
-@router.get("/{id}")
+@router.get("/{id}", response_model=schemas.MediaFileResponse)
 async def get_file_endpoints(
 	id: UUID,
 	user: UserDTO = Depends(get_current_user),
@@ -31,4 +32,10 @@ async def get_file_endpoints(
 ):
 	query = GetMediaFileQuery(id=id)
 	media_file_dto = await get_media_file.execute(query)
-	return FileResponse(media_file_dto.url)
+	return schemas.MediaFileResponse(
+		original_filename=media_file_dto.original_filename,
+		file_size=media_file_dto.file_size,
+		mime_type=media_file_dto.mime_type,
+		extension=media_file_dto.extension,
+		url=media_file_dto.url,
+	)

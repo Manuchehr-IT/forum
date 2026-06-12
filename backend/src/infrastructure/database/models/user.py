@@ -9,6 +9,10 @@ from .linked_account import LinkedAccountModel
 class UserModel(Base, TimestampMixin):
 	__tablename__ = "users"
 
+	email: Mapped[str | None] = mapped_column(String, nullable=True)
+	phone: Mapped[str | None] = mapped_column(String(16), nullable=True)
+	password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
+
 	first_name: Mapped[str] = mapped_column(String(32), nullable=False)
 	last_name: Mapped[str | None] = mapped_column(String(32), nullable=True)
 	username: Mapped[str | None] = mapped_column(String(32), nullable=True)
@@ -16,9 +20,6 @@ class UserModel(Base, TimestampMixin):
 	about: Mapped[str | None] = mapped_column(Text, nullable=True)
 	location: Mapped[str | None] = mapped_column(String, nullable=True)
 	birthday: Mapped[date | None] = mapped_column(Date, nullable=True)
-
-	email: Mapped[str | None] = mapped_column(String, nullable=True)
-	phone: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
 	language_code: Mapped[str] = mapped_column(String(5), nullable=False)
 	avatar_path: Mapped[str | None] = mapped_column(String, nullable=True)

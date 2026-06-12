@@ -57,8 +57,8 @@ async def get_current_user(
 			)
 
 		try:
-			provider_user_id = JWTManager.extract_user_id_from_payload(payload)
-			provider = JWTManager.extract_provider_from_payload(payload) # "telegram"
+			user_id_or_provider_id = JWTManager.extract_user_id_from_payload(payload)
+			provider = JWTManager.extract_provider_from_payload(payload)
 		except InvalidTokenError as e:
 			raise HTTPException(
 				status_code=401,
@@ -69,5 +69,10 @@ async def get_current_user(
 				headers={"WWW-Authenticate": "Bearer"},
 			)
 
-		query = GetUserQuery.by_provider_id(provider=provider, provider_user_id=provider_user_id)
+		if provider == "email":
+			from uuid import UUID
+			query = GetUserQuery.by_id(user_id=UUID(user_id_or_provider_id))
+		else:
+			query = GetUserQuery.by_provider_id(provider=provider, provider_user_id=user_id_or_provider_id)
+
 		return await get_user.execute(query=query)

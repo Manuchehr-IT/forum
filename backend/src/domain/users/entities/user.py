@@ -20,6 +20,7 @@ class User:
 		avatar_path: str | None = None,
 		email: str | None = None,
 		phone: str | None = None,
+		password_hash: str | None = None,
 		is_system: bool = False,
 		is_admin: bool = False,
 		created_at: datetime | None = None,
@@ -41,12 +42,21 @@ class User:
 
 		self.email = email
 		self.phone = phone
+		self.password_hash = password_hash
 
 		self.is_admin = is_admin
 
 		self.accounts = accounts or []
 
 	# Бизнес-методы
+	@staticmethod
+	def create_from_email(first_name: str, email: str, password_hash: str) -> "User":
+		return User(
+			first_name=first_name,
+			email=email,
+			password_hash=password_hash,
+		)
+
 	@staticmethod
 	def create_from_telegram(first_name: str, language_code: str | None, last_name: str | None, username: str | None) -> "User":
 		return User(
@@ -92,8 +102,9 @@ class User:
 			birthday=record["birthday"],
 			language_code=record["language_code"],
 			avatar_path=record["avatar_path"],
-			# email=record["email"],
-			# phone=record["phone"],
+			email=record.get("email"),
+			phone=record.get("phone"),
+			password_hash=record.get("password_hash"),
 			is_system=record["is_system"],
 			# is_admin=record["is_admin"],
 			created_at=record["created_at"],

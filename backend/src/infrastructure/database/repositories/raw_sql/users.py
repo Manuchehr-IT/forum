@@ -40,16 +40,24 @@ class RawSQLUserRepository(UserRepository):
 
 			return User.from_db_with_accounts(user_row, account_rows)
 
+	async def get_by_email(self, email: str) -> User:
+		async with self.pool.acquire() as connection:
+			user_row = await connection.fetchrow("SELECT * FROM users WHERE email = $1", email)
+			if not user_row:
+				raise UserNotFoundError(user_id=email, search_type="email")
+
+			return User.from_db_record(user_row)
+
 	async def add(self, user: User) -> None:
 		async with self.pool.acquire() as connection:
 			async with connection.transaction():
 				await connection.execute(
 					"""
-					INSERT INTO users(id, first_name, last_name, username, email, phone, language_code, avatar_path, is_system, created_at, updated_at)
-					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+					INSERT INTO users(id, first_name, last_name, username, email, phone, password_hash, language_code, avatar_path, is_system, created_at, updated_at)
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 					""",
-					user.id, user.first_name, user.last_name, user.username, user.email, user.phone, user.language_code, user.avatar_path,
-					user.is_system, user.created_at, user.updated_at
+					user.id, user.first_name, user.last_name, user.username, user.email, user.phone, user.password_hash,
+					user.language_code, user.avatar_path, user.is_system, user.created_at, user.updated_at
 				)
 
 				for account in user.accounts:

@@ -23,5 +23,9 @@ class UserRepository(ABC):
 		pass
 
 	@abstractmethod
+	async def get_by_email(self, email: str) -> User:
+		pass
+
+	@abstractmethod
 	async def set_avatar(self, user_id: UUID, avatar_path: str) -> None:
 		pass

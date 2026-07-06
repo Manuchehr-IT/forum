@@ -23,7 +23,12 @@ class MessageReactionTypeAPI(str, Enum):
 
 class MessageMediaFileData(BaseModel):
 	media_file_id: UUID = Field(..., description="ID медиафайла")
-	sort_order: int = Field(..., description="Сортировка по возростанию")
+	sort_order: int = Field(..., description="Сортировка по возрастанию")
+	original_filename: str | None = Field(None, description="Оригинальное имя файла")
+	file_size: int | None = Field(None, description="Размер файла в байтах")
+	mime_type: str | None = Field(None, description="MIME тип")
+	extension: str | None = Field(None, description="Расширение файла")
+	url: str = Field(..., description="URL для доступа к файлу")
 
 # ============ REQUEST SCHEMAS ============
 
@@ -31,7 +36,7 @@ class BaseMessageRequest(BaseModel):
 	"""Базовая схема для всех сообщений"""
 	text: str | None = Field(None, description="Текст сообщения. Может быть пустым.")
 	is_openai_generated: bool = Field(False, description="Сгенерировано ли с помощью AI")
-	media_file_ids: List[UUID] = Field(default_factory=list, description="ID медиафайлов, которые нужно прикрепить")
+	media_file_ids: List[UUID] = Field(default_factory=list[UUID], description="ID медиафайлов, которые нужно прикрепить")
 
 	@field_validator("text")
 	@classmethod

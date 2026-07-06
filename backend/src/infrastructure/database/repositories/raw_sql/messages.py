@@ -15,14 +15,23 @@ class RawSQLMessageRepository(MessageRepository):
 		async with self.pool.acquire() as connection:
 			query = """
 			WITH message_media AS (
-				SELECT 
-					message_id,
-					json_agg(mmf) as media_files
+				SELECT
+					mmf.message_id,
+					json_agg(json_build_object(
+						'media_file_id', mmf.media_file_id,
+						'sort_order', mmf.sort_order,
+						'original_filename', mf.original_filename,
+						'file_size', mf.file_size,
+						'mime_type', mf.mime_type,
+						'extension', mf.extension,
+						'storage_path', mf.storage_path
+					) ORDER BY mmf.sort_order) as media_files
 				FROM message_media_files mmf
-				WHERE message_id = $1
-				GROUP BY message_id
+				JOIN media_files mf ON mmf.media_file_id = mf.id
+				WHERE mmf.message_id = $1
+				GROUP BY mmf.message_id
 			)
-			SELECT 
+			SELECT
 				m.*,
 				pmd as post_message_data,
 				tmd as task_message_data,
@@ -136,8 +145,17 @@ class RawSQLMessageRepository(MessageRepository):
 				tamd as task_assignment_message_data,
 				cmd as comment_message_data,
 				(
-					SELECT COALESCE(json_agg(mmf), '[]'::json)
+					SELECT COALESCE(json_agg(json_build_object(
+						'media_file_id', mmf.media_file_id,
+						'sort_order', mmf.sort_order,
+						'original_filename', mf.original_filename,
+						'file_size', mf.file_size,
+						'mime_type', mf.mime_type,
+						'extension', mf.extension,
+						'storage_path', mf.storage_path
+					) ORDER BY mmf.sort_order), '[]'::json)
 					FROM message_media_files mmf
+					JOIN media_files mf ON mmf.media_file_id = mf.id
 					WHERE mmf.message_id = m.id
 				) as message_media_files
 			FROM messages m

@@ -35,7 +35,7 @@ class GetTaskAssignments:
 			is_openai_generated=message.is_openai_generated,
 			created_at=message.created_at,
 			updated_at=message.updated_at,
-			media_files=[MessageMediaFileDTO(media_file_id=mf.media_file_id, sort_order=mf.sort_order) for mf in message._media_files],
+			media_files=[MessageMediaFileDTO.from_domain(mf) for mf in message._media_files],
 
 			content_id=message.task_assignment_data.content_id,			# pyright: ignore[reportOptionalMemberAccess]
 			is_partially=message.task_assignment_data.is_partially,		# pyright: ignore[reportOptionalMemberAccess]

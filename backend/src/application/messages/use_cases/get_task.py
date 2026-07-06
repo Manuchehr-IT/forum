@@ -27,7 +27,7 @@ class GetTask:
 			is_openai_generated=message.is_openai_generated,
 			created_at=message.created_at,
 			updated_at=message.updated_at,
-			media_files=[MessageMediaFileDTO(media_file_id=mf.media_file_id, sort_order=mf.sort_order) for mf in message._media_files],
+			media_files=[MessageMediaFileDTO.from_domain(mf) for mf in message._media_files],
 
 			ratio=message.task_data.ratio,		# pyright: ignore[reportOptionalMemberAccess]
 		)

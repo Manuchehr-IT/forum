@@ -1,5 +1,4 @@
 from fastapi import UploadFile
-from pydantic import ValidationError
 from typing import List
 
 from src.domain.interfaces.file_validator import FileValidator
@@ -43,85 +42,85 @@ class DefaultFileValidator(FileValidator):
 
 		# Проверка что файл не пустой:
 		if not file:
-			raise ValidationError("File is empty or None")
+			raise ValueError("File is empty or None")
 
 		# Проверка что есть имя
 		if not file.filename:
-			raise ValidationError("Filename is missing")
+			raise ValueError("Filename is missing")
 
 		# Проверка что размер существует
 		if file.size is None:
-			raise ValidationError(f"File size is unknown")
+			raise ValueError(f"File size is unknown")
 
 		# Проверка размера
 		if file.size and file.size > self.max_size:
-			raise ValidationError(f"File too large: {file.size} > {self.max_size}")
+			raise ValueError(f"File too large: {file.size} > {self.max_size}")
 
 		# Проверка что есть content type
 		if not file.content_type:
-			raise ValidationError("Content type is missing")
+			raise ValueError("Content type is missing")
 
 	def _validate_filename(self, filename: str):
 		"""Проверка имени файла на корректность"""
 
 		if len(filename) > 255:
-			raise ValidationError(f"Filename too long: {len(filename)} > 255")
+			raise ValueError(f"Filename too long: {len(filename)} > 255")
 
 		# Пустое имя после очистки
 		if not filename.strip():
-			raise ValidationError("Filename is empty after stripping")
+			raise ValueError("Filename is empty after stripping")
 
 		# Запрещенные символы (path traversal)
 		forbidden = ["..", "/", "\\", "%00", "\x00"]
 		for char in forbidden:
 			if char in filename:
-				raise ValidationError(f"Filename contains forbidden character: {char}")
+				raise ValueError(f"Filename contains forbidden character: {char}")
 
 		# Пустое имя после очистки
 		if not filename.strip():
-			raise ValidationError("Filename is empty after stripping")
+			raise ValueError("Filename is empty after stripping")
 
 		# Скрытые файлы (опционально)
 		if filename.startswith("."):
-			raise ValidationError("Hidden files are not allowed")
+			raise ValueError("Hidden files are not allowed")
 
 	def _validate_extension(self, filename: str):
 		"""Проверка расширения файла"""
 
 		# Нет расширения
 		if "." not in filename:
-			raise ValidationError("File has no extension")
+			raise ValueError("File has no extension")
 
 		ext = filename.split(".")[-1].lower()
 
 		# Пустое расширение
 		if not ext:
-			raise ValidationError("Empty file extension")
+			raise ValueError("Empty file extension")
 
 		# Проверка длины расширения
 		if len(ext) > 10:
-			raise ValidationError(f"Extension too long: {ext}")
+			raise ValueError(f"Extension too long: {ext}")
 
 		# Проверка что расширение разрешено
 		if ext not in self.allowed_extensions:
-			raise ValidationError(f"Invalid extension: {ext}")
+			raise ValueError(f"Invalid extension: {ext}")
 
 		# Двойное расширение (потенциально опасное)
 		if filename.count(".") > 2:
-			raise ValidationError("Multiple extensions detected")
+			raise ValueError("Multiple extensions detected")
 
 	async def _validate_mime_type(self, file: UploadFile):
 		"""Проверка MIME type"""
 
 		# Проверка что MIME type разрешен
 		if file.content_type not in self.allowed_types:
-			raise ValidationError(f"Invalid MIME type: {file.content_type}")
+			raise ValueError(f"Invalid MIME type: {file.content_type}")
 
 		# Специфичные проверки для разных типов
 		if file.content_type.startswith("image/"):
 			# Для изображений можно проверить максимальные размеры
 			if file.content_type not in ["image/jpeg", "image/png", "image/gif", "image/webp"]:
-				raise ValidationError(f"Unsupported image format: {file.content_type}")
+				raise ValueError(f"Unsupported image format: {file.content_type}")
 
 
 	# async def validate_batch(self, files: List[UploadFile]) -> List[ValidationResult]:

@@ -105,10 +105,6 @@ class DefaultFileValidator(FileValidator):
 		if ext not in self.allowed_extensions:
 			raise ValueError(f"Invalid extension: {ext}")
 
-		# Двойное расширение (потенциально опасное)
-		if filename.count(".") > 2:
-			raise ValueError("Multiple extensions detected")
-
 	async def _validate_mime_type(self, file: UploadFile):
 		"""Проверка MIME type"""
 
